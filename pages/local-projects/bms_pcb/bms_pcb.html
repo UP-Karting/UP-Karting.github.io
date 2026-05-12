@@ -1,0 +1,211 @@
+﻿<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="Design, manufacturing and optimization of the UP Karting battery pack.">
+    <title>Battery pack | UP Karting</title>
+    <link rel="icon" href="../../../favicon.ico" sizes="any">
+    <link rel="icon" href="../../../favicon.svg" type="image/svg+xml">
+    <link rel="stylesheet" href="../../../assets/css/styles.css">
+    <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <a class="brand" href="../../../index.html" aria-label="UP Karting home">
+        <img src="../../../assets/logos/up-karting-logo.svg" alt="" class="brand-mark sponsor-mono">
+        <span>UP Karting</span>
+      </a>
+      <nav class="site-nav" aria-label="Main navigation">
+        <a href="../../../index.html">Home</a>
+        <a href="../../projects.html" aria-current="page">Projects</a>
+        <a href="../../info.html">Info</a>
+      </nav>
+    </header>
+
+    <main>
+      <section class="page-hero">
+        <div class="page-hero-inner">
+          <div>
+            <h1>Battery pack</h1>
+            <p>
+              Design, manufacturing and optimization of the UP Karting battery pack.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page-section" aria-labelledby="battery-pack-title">
+        <div class="section-heading">
+          <p class="eyebrow">Battery Pack</p>
+          <h2 id="battery-pack-title">Pack topology and BMS selection</h2>
+        </div>
+        <article class="plain-text">
+          <p>
+            For the kart, we decided to use a 48 V nominal battery setup. This was mostly a compromise between keeping the voltage relatively low and safe, not needing too many cells, and still being able to supply the current needed by the motor. Since the motor is rated at 5 kW, the maximum current draw is roughly 100 A, so a 15S configuration made sense.
+          </p>
+          <p>
+            At first, a pack made from cylindrical cells was an option, but in practice it would have made the build more complicated. The main issue was that we did not have proper spot-welding equipment, so assembling a reliable cylindrical-cell pack would have been harder. Because of this, we chose to use high-capacity prismatic cells instead. These are much easier to work with mechanically, since the busbars can be bolted directly onto the cell terminals.
+          </p>
+          <p>
+            The final battery pack is a 15S1P configuration using Samsung SDI 94 Ah prismatic cells. These cells were a good fit for the project for a few reasons. They have already been used in the BMW i3 battery pack, so they are not an unknown or untested option. They also have a very high maximum current rating of 400 A, which gives us a lot of margin compared to what the motor should normally draw. Their 94 Ah capacity is also more than enough for our application.
+          </p>
+          <p>
+            Another reason we liked these cells is that they are easier to package than pouch cells. They do not need the same level of compression and careful mechanical support, which makes the battery enclosure simpler. Also, since they are made by Samsung SDI, we had more confidence in their quality compared with many cheaper battery options.
+          </p>
+          <p>
+            The downside is mainly weight and size. Each cell weighs about 2 kg, so the cells alone add around 30 kg to the kart. They are also quite large, so the complete battery pack takes up more space than a custom cylindrical-cell pack would.
+          </p>
+          <figure class="asset-figure">
+            <img src="assets/samsung_sdi.webp" alt="Samsung SDI prismatic cell with a beer can for scale" loading="lazy">
+            <figcaption>Samsung SDI, beer for reference</figcaption>
+          </figure>
+          <p>
+            To make the pack fit better on the chassis and keep the weight distribution reasonable, we split it into two parts, one on each side of the kart. One side holds 6 cells and the other side holds 9 cells.
+          </p>
+          <p>
+            For monitoring the battery voltages and temperatures, we chose the Analog Devices LTC6810 six-cell battery monitor. One useful feature of this IC is that it can operate with a low minimum cell stack voltage, so we can connect only 3 cells to it instead of needing to use all 6 channels. It also uses isoSPI communication, which gives better isolation and noise immunity. This is important in a vehicle, because the electrical environment can be quite noisy and the system is not referenced to a fixed ground in the same way as a normal bench setup.
+          </p>
+          <p>
+            So in the end, the monitoring system uses three LTC6810 slave boards, together with one master board based on the Analog Devices LTC6820 isoSPI interface.
+          </p>
+        </article>
+      </section>
+
+      <section class="section page-section" aria-labelledby="bms-slave-title">
+        <div class="section-heading">
+          <p class="eyebrow">BMS Slave</p>
+          <h2 id="bms-slave-title">Slave cell-monitoring board</h2>
+        </div>
+        <article class="plain-text">
+          <p>
+            The slave schematic was developed based on the LTC6810 reference design. Unpopulated jumper positions were included to allow the same PCB to be configured for measuring fewer than six cells, improving flexibility during testing and integration. A passive cell-balancing circuit using 2.2 ohm discharge resistors was also implemented.
+          </p>
+          <p>
+            Passive balancing was selected instead of active balancing because the battery pack has a large overall capacity, making energy recovery less critical. An active balancing system would also significantly increase development time, cost, and design complexity. The selected 2.2 ohm resistors are capable of correcting a 2% state-of-charge imbalance in approximately one hour, while the expected imbalance per cycle is less than 0.1%, based on <a href="https://www.ti.com/download/trng/docs/seminar/Topic%202%20-%20Battery%20Cell%20Balancing%20-%20What%20to%20Balance%20and%20How.pdf">Texas Instruments cell-balancing guidance</a>. To reduce thermal stress on the slave PCB, the balancing circuit is intended to operate only during charging and not while the vehicle is on track.
+          </p>
+          <p>
+            The PCB layout was designed with manufacturability, assembly, and debugging in mind. Components were placed to simplify both production assembly and hand soldering, while important signals, such as voltage references and measurement nodes, were made easily accessible for probing during testing.
+          </p>
+          <div class="pcb-viewer">
+            <iframe src="https://personal-viewer.365.altium.com/client/index.html?feature=embed&amp;source=E35D7B6F-C798-4E12-B836-A95D1C66D617&amp;activeView=PCB" width="1280" height="720" scrolling="no" allowfullscreen="true" loading="lazy" title="BMS slave PCB Altium viewer"></iframe>
+          </div>
+          <p>
+            Mechanically, the PCB is designed to be mounted using spacers onto an aluminum platform that also constrains the battery cells along the Z-axis. The 3D model below shows the slave board in this mechanical context.
+          </p>
+        </article>
+        <div class="project-media">
+          <div class="assembly-stack">
+            <figure class="assembly-figure">
+              <model-viewer class="assembly-viewer" src="assets/slave_container_assembly.glb?v=20260512210117" poster="assets/pcb_on_cad.webp" alt="3D model of the BMS slave container assembly" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="4deg" camera-orbit="35deg 65deg auto" shadow-intensity="0" interaction-prompt="none" loading="lazy">
+                <img class="model-fallback-image" slot="poster" src="assets/pcb_on_cad.webp" alt="Fallback CAD render for the BMS slave assembly" loading="lazy">
+              </model-viewer>
+              <figcaption>Right battery box assembly</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page-section" aria-labelledby="bms-master-title">
+        <div class="section-heading">
+          <p class="eyebrow">BMS Master</p>
+          <h2 id="bms-master-title">BMS Master board</h2>
+        </div>
+        <article class="plain-text">
+          <p>
+            The master board is the controller side of the BMS and is built around an ESP32-C6 microcontroller. The ESP32-C6 was chosen mainly because of its very low cost, its availability as a complete System-on-Chip with minimal external components required, and its ease of programming. For this type of application, integrating a dedicated automotive-grade MCU with functional safety features would have been ideal. However, that would have significantly increased the development time, cost, and complexity of the project. The integrated Wi-Fi capability of the ESP32-C6 is also a useful bonus, as it makes it very easy to add a web interface for monitoring battery data, configuring parameters, and debugging the system during development.
+          </p>
+          <figure class="asset-figure interface-figure">
+            <img src="assets/web_interface.jpg" alt="BMS web interface for monitoring battery data and configuration parameters" loading="lazy">
+            <figcaption>BMS web interface.</figcaption>
+          </figure>
+          <p>
+            The master board is designed to measure the voltage and temperature of the pack's cells using an LTC6820 isoSPI interface to the slave boards. It also measures the total pack current using a precision shunt sensor from Isabellenhuette. These measurements allow the BMS to monitor the condition of the battery pack and detect unsafe operating conditions.
+          </p>
+          <p>
+            Other important functions of the master board include controlling the main battery contactors and managing the precharge procedure. The contactors isolate the battery from the external system and provide an important layer of protection against unsafe operation of both the battery pack and the connected load. The precharge circuit is necessary to safely charge the input capacitance of the connected inverter before the main contactors are closed. This reduces the inrush current, which could otherwise damage the contactors by welding their contacts, or potentially damage the DC-link capacitors.
+          </p>
+          <div class="pcb-viewer">
+            <iframe src="https://personal-viewer.365.altium.com/client/index.html?feature=embed&amp;source=1F4FB126-107B-4080-A23E-A594117D4EE5&amp;activeView=PCB" width="1280" height="720" scrolling="no" allowfullscreen="true" loading="lazy" title="BMS master PCB Altium viewer"></iframe>
+          </div>
+          <p>
+            The master PCB is housed in an off-the-shelf aluminum electronics enclosure, which also acts as a heatsink for the isolated LV DC/DC converter. The rest of the mechanical assembly was designed with large clearance distances in mind.
+          </p>
+        </article>
+        <div class="project-media">
+          <div class="assembly-stack">
+            <figure class="assembly-figure">
+              <model-viewer class="assembly-viewer" src="assets/master_assembly.glb?v=20260512210533" poster="assets/master_on_cad.webp" alt="3D model of the BMS master assembly" camera-controls touch-action="pan-y" auto-rotate auto-rotate-delay="0" rotation-per-second="4deg" camera-orbit="35deg 65deg auto" shadow-intensity="0" interaction-prompt="none" loading="lazy">
+                <img class="model-fallback-image" slot="poster" src="assets/master_on_cad.webp" alt="Fallback CAD render for the BMS master assembly" loading="lazy">
+              </model-viewer>
+              <figcaption>Master assembly with the BMS Master PCB, Battery contactors and IVT-S current sensor.</figcaption>
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="section page-section" aria-labelledby="bms-validation-title">
+        <div class="section-heading">
+          <p class="eyebrow">Firmware and Validation</p>
+          <h2 id="bms-validation-title">SPI bring-up and captures</h2>
+        </div>
+        <article class="plain-text">
+          <p>
+            The first firmware task was to simply check that communication was working, before moving on to any actual BMS logic. To do this, we sent commands from the ESP32-C6, looked at the SPI signals with a <a href="https://www.saleae.com">Saleae</a> logic analyzer, and checked that the bytes coming back matched the frame structure expected by the LTC6810. While doing this, we also used the analog waveform in Saleae Logic to tune the MISO pull-up value, which was a nice little bonus.
+          </p>
+          <figure class="asset-figure">
+            <img src="assets/saleae_photo.webp" alt="BMS PCB connected to a Saleae logic analyzer during bench testing" loading="lazy">
+            <figcaption>Bench setup with the BMS master PCB connected to the Saleae logic analyzer.</figcaption>
+          </figure>
+          <p>
+            Once SPI communication was working, it became clear that the firmware was not really using the LTC6810 as efficiently as it could. There was quite a lot of dead time between measurements, so the actual sampling rate was much lower than what the chip should be capable of.
+          </p>
+          <p>
+            I decided to try a new feature in Saleae Logic, the integration with MCP servers, which allows LLMs to connect directly to the waveforms captured by Saleae logic analyzers. While I was initially sceptical, I decided to try it. I connected ChatGPT to the Saleae MCP server and asked it to reduce the LTC6810 measurement dead time as much as possible.
+          </p>
+          <p>
+            To my surprise, after reading the waveform from the Saleae analyzer, it modified the firmware to increase the sampling rate to the maximum, achieving 500 samples per second for both temperature and voltage measurements. Previously, the system was only sampling once per second. The updated code was then uploaded and the result was verified again automatically using Saleae Logic.
+          </p>
+          <div class="asset-grid">
+            <figure class="asset-figure">
+              <img src="assets/slowspeed.webp" alt="Saleae Logic 2 Slow-speed SPI capture" loading="lazy">
+              <figcaption>Saleae Logic 2 Slow-speed SPI capture</figcaption>
+            </figure>
+            <figure class="asset-figure">
+              <img src="assets/maxspeed.webp" alt="Saleae Logic 2 Fast-speed SPI capture after optimization" loading="lazy">
+              <figcaption>Saleae Logic 2 Fast-speed SPI capture after optimization</figcaption>
+            </figure>
+          </div>
+          <p>
+            This was honestly impressive. From installing the setup to getting the final result, the whole process took around 20 minutes. Normally, reaching the same point would probably require a few hours of datasheet reading, trial and error, and small firmware changes.
+          </p>
+          <p>
+            That being said, I remain sceptical of LLMs, especially in safety-critical applications such as battery management, and I am not a fan of the recent "human-in-the-loop" trend being pushed everywhere. But in this case, the Saleae MCP integration proved to be genuinely useful. For embedded development and debugging, it turned out to be a surprisingly powerful tool.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <script>
+      const assemblyViewers = document.querySelectorAll(".assembly-viewer");
+      const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+      assemblyViewers.forEach((viewer) => {
+        if (prefersReducedMotion.matches) {
+          viewer.removeAttribute("auto-rotate");
+        }
+      });
+
+      if ("IntersectionObserver" in window && !prefersReducedMotion.matches) {
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            entry.target.toggleAttribute("auto-rotate", entry.isIntersecting);
+          });
+        }, { threshold: 0.15 });
+
+        assemblyViewers.forEach((viewer) => observer.observe(viewer));
+      }
+    </script>
+
+  </body>
+</html>

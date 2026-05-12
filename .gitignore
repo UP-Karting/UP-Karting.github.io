@@ -1,0 +1,3 @@
+# Local Python web server artifacts
+/server*.log
+/server.pid
