@@ -669,6 +669,13 @@ img.sponsor-mono {
   opacity: 0.84;
 }
 
+.project-thumb--bare {
+  aspect-ratio: auto;
+  border: 0;
+  object-fit: contain;
+  opacity: 1;
+}
+
 .project-row:nth-child(2) .project-thumb {
   object-position: 35% center;
 }
